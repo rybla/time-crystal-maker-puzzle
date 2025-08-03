@@ -35,7 +35,7 @@ export type EntityId = string;
 export type Entity = {
   protoEntityId: ProtoEntityId;
   id: EntityId;
-  alive: boolean;
+  dead?: boolean;
   pos: Pos;
   forward: Dir;
   item?: Item;
@@ -122,10 +122,9 @@ export function eqWorld(world1: World, world2: World) {
 
 export function eqEntity(entity1: Entity, entity2: Entity) {
   return or([
-    // !entity1.alive && !entity2.alive,
-    false,
+    (entity1.dead ?? false) && (entity2.dead ?? false),
     and([
-      entity1.alive === entity2.alive,
+      entity1.dead === entity2.dead,
       entity1.id === entity2.id,
       eqDir(entity1.forward, entity2.forward),
       eqPos(entity1.pos, entity2.pos),

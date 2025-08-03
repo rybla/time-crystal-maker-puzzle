@@ -67,7 +67,7 @@ export class WorldUpdateManager {
    * Do an {@link Action}.
    */
   async runAction(self: Entity, action: Action): Promise<void> {
-    if (!self.alive) return;
+    if (self.dead) return;
 
     return match<ActionRow, Promise<void>>(action, {
       sequence: async ({ actions }) => {
@@ -97,7 +97,7 @@ export class WorldUpdateManager {
         const front = shiftPos(self.pos, self.forward);
         const other = this.getEntityAtPos(front);
         if (other !== undefined) {
-          other.alive = false;
+          other.dead = true;
         }
         await this.submit();
       },
@@ -136,7 +136,7 @@ export class WorldUpdateManager {
 
   getEntityAtPos(pos: Pos): Entity | undefined {
     for (const entity of Object.values(this.world.entities)) {
-      if (and([entity.alive, eqPos(entity.pos, pos)])) {
+      if (and([!entity.dead, eqPos(entity.pos, pos)])) {
         return entity;
       }
     }

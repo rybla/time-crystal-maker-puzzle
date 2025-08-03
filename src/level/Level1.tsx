@@ -88,14 +88,12 @@ export default function Level() {
             {
               id: "E1",
               protoEntityId: protoEntities.LineStomper.id,
-              alive: true,
               pos: { x: 4, y: 1 },
               forward: 3,
             },
             {
               id: "E2",
               protoEntityId: protoEntities.LineStomper.id,
-              alive: true,
               pos: { x: 1, y: 1 },
               forward: 1,
             },

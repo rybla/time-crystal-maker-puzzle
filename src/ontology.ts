@@ -1,11 +1,11 @@
-import { Variant } from "./utility";
+import { and, Variant } from "./utility";
 
 // -----------------------------------------------------------------------------
 // ProtoWorld
 // -----------------------------------------------------------------------------
 
 export type ProtoWorld = {
-  protoEntities: Map<ProtoEntityId, ProtoEntity>;
+  protoEntities: Record<ProtoEntityId, ProtoEntity>;
   initialEntities: Entity[];
 };
 
@@ -26,7 +26,7 @@ export type Trigger = {
 // -----------------------------------------------------------------------------
 
 export type World = {
-  entities: Map<EntityId, Entity>;
+  entities: Record<EntityId, Entity>;
 };
 
 export type EntityId = string;
@@ -35,9 +35,12 @@ export type Entity = {
   protoEntityId: ProtoEntityId;
   id: EntityId;
   pos: Pos;
-  health: number;
+  alive: boolean;
   forward: Dir;
+  item: Item | undefined;
 };
+
+type Item = string;
 
 // -----------------------------------------------------------------------------
 // Condition
@@ -52,11 +55,17 @@ export type Condition = (world: World, entityId: EntityId) => boolean;
 
 export type Action = Variant<ActionRow>;
 export type ActionRow = {
-  // move: { ve: DirExpr };
+  // move
   moveForward: {};
   turnLeft: {};
   turnRight: {};
+  // attack
   attack: { damage: number };
+  // item
+  generateItem: { item: Item };
+  consumeItem: { item: Item };
+  giveItem: { item: Item };
+  //
   sequence: { actions: Action[] };
 };
 
@@ -82,10 +91,6 @@ export function rotateRightDir(v: Dir): Dir {
   return v + 1;
 }
 
-export function eqDirExpr(v1: Dir, v2: Dir): boolean {
-  return v1 % 4 === v2 % 4;
-}
-
 // -----------------------------------------------------------------------------
 // Pos
 // -----------------------------------------------------------------------------
@@ -99,6 +104,33 @@ export function shiftPos(p: Pos, v: Dir): Pos {
   };
 }
 
+// -----------------------------------------------------------------------------
+// eq
+// -----------------------------------------------------------------------------
+
+export function eqWorld(world1: World, world2: World) {
+  const entityIds = Array.from(Object.keys(world1.entities));
+  for (const entityId of entityIds) {
+    const entity1 = world1.entities[entityId];
+    const entity2 = world2.entities[entityId];
+    return eqEntity(entity1, entity2);
+  }
+}
+
+export function eqEntity(entity1: Entity, entity2: Entity) {
+  return and([
+    entity1.id === entity2.id,
+    entity1.alive === entity2.alive,
+    eqDir(entity1.forward, entity2.forward),
+    eqPos(entity1.pos, entity2.pos),
+    entity1.item === entity2.item,
+  ]);
+}
+
 export function eqPos(p1: Pos, p2: Pos): boolean {
   return p1.x === p2.x && p1.y === p2.y;
+}
+
+export function eqDir(v1: Dir, v2: Dir): boolean {
+  return v1 % 4 === v2 % 4;
 }

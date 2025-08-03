@@ -25,3 +25,11 @@ export async function sleep(ms: number): Promise<void> {
 export function do_<A>(k: () => A): A {
   return k();
 }
+
+export function and(xs: boolean[]): boolean {
+  return xs.reduce((a, b) => a && b, true);
+}
+
+export function or(xs: boolean[]): boolean {
+  return xs.reduce((a, b) => a || b, false);
+}

@@ -20,9 +20,13 @@ import { deepcopy, match } from "./utility";
 // -----------------------------------------------------------------------------
 
 export function initializeWorld(protoWorld: ProtoWorld): World {
-  const entities = new Map(
-    protoWorld.initialEntities.map((entity) => [entity.id, deepcopy(entity)]),
-  );
+  // const entities = new Map(
+  //   protoWorld.initialEntities.map((entity) => [entity.id, deepcopy(entity)]),
+  // );
+  const entities: World["entities"] = {};
+  for (const entity of protoWorld.initialEntities) {
+    entities[entity.id] = entity;
+  }
   return {
     entities,
   };
@@ -48,7 +52,7 @@ export class WorldUpdateManager {
    * triggered.
    */
   async run(): Promise<void> {
-    for (const entity of this.world.entities.values()) {
+    for (const entity of Object.values(this.world.entities)) {
       const protoEntity = this.getProtoEntity(entity.protoEntityId);
       for (const trigger of protoEntity.triggers) {
         if (trigger.condition(this.world, entity.id)) {
@@ -62,64 +66,77 @@ export class WorldUpdateManager {
   /**
    * Do an {@link Action}.
    */
-  async runAction(entity: Entity, action: Action): Promise<void> {
+  async runAction(self: Entity, action: Action): Promise<void> {
     return match<ActionRow, Promise<void>>(action, {
       sequence: async ({ actions }) => {
         for (const action of actions) {
-          await this.runAction(entity, action);
+          await this.runAction(self, action);
         }
       },
       moveForward: async ({}) => {
         // moves forward if the front space is empty
-        const front = shiftPos(entity.pos, entity.forward);
-        const entities = this.getEntitiesAtPos(front).filter(
-          (e) => e.id !== entity.id,
-        );
-        if (entities.length === 0) {
-          entity.pos = front;
+        const front = shiftPos(self.pos, self.forward);
+        const other = this.getEntityAtPos(front);
+        if (other === undefined) {
+          self.pos = front;
         }
         await this.submit();
       },
       turnLeft: async ({}) => {
-        entity.forward = rotateLeftDir(entity.forward);
+        self.forward = rotateLeftDir(self.forward);
         await this.submit();
       },
       turnRight: async ({}) => {
-        entity.forward = rotateRightDir(entity.forward);
+        self.forward = rotateRightDir(self.forward);
         await this.submit();
       },
       attack: async ({ damage }) => {
-        // deals damage to entities in front
-        const front = shiftPos(entity.pos, entity.forward);
-        const entities = this.getEntitiesAtPos(front).filter(
-          (e) => e.id !== entity.id,
-        );
-        for (const entity of entities) {
-          entity.health -= damage;
+        // deals damage to entity in front
+        const front = shiftPos(self.pos, self.forward);
+        const other = this.getEntityAtPos(front);
+        if (other !== undefined) {
+          other.alive = false;
         }
         await this.submit();
+      },
+      giveItem: async ({ item }) => {
+        // gives item to entity in front
+        const front = shiftPos(self.pos, self.forward);
+        const other = this.getEntityAtPos(front);
+        if (other !== undefined) {
+          if (self.item === item) {
+            self.item = undefined;
+            other.item = item;
+          }
+        }
+        await this.submit();
+      },
+      consumeItem: async ({ item }) => {
+        if (self.item === item) {
+          self.item = undefined;
+        }
+      },
+      generateItem: async ({ item }) => {
+        self.item = item;
       },
     });
   }
 
   getEntity(entityId: EntityId): Entity {
-    const entity = this.world.entities.get(entityId);
-    if (entity === undefined) throw new Error(`Entity ${entityId} not found`);
+    const entity = this.world.entities[entityId];
     return entity;
   }
 
   getProtoEntity(protoEntityId: ProtoEntityId): ProtoEntity {
-    const protoEntity = this.protoWorld.protoEntities.get(protoEntityId);
-    if (protoEntity === undefined)
-      throw new Error(`ProtoEntity ${protoEntityId} not found`);
+    const protoEntity = this.protoWorld.protoEntities[protoEntityId];
     return protoEntity;
   }
 
-  getEntitiesAtPos(pos: Pos): Entity[] {
-    return Array.from(
-      this.world.entities
-        .values()
-        .flatMap((entity) => (eqPos(entity.pos, pos) ? [entity] : [])),
-    );
+  getEntityAtPos(pos: Pos): Entity | undefined {
+    for (const entity of Object.values(this.world.entities)) {
+      if (eqPos(entity.pos, pos)) {
+        return entity;
+      }
+    }
   }
 }

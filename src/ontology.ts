@@ -12,6 +12,7 @@ export type ProtoWorld = {
 export type ProtoEntityId = string;
 
 export type ProtoEntity = {
+  description: string;
   id: ProtoEntityId;
   triggers: Trigger[];
 };
@@ -37,7 +38,7 @@ export type Entity = {
   alive: boolean;
   pos: Pos;
   forward: Dir;
-  item: Item | undefined;
+  item?: Item;
 };
 
 type Item = string;
@@ -110,17 +111,21 @@ export function shiftPos(p: Pos, v: Dir): Pos {
 
 export function eqWorld(world1: World, world2: World) {
   const entityIds = Array.from(Object.keys(world1.entities));
-  for (const entityId of entityIds) {
-    const entity1 = world1.entities[entityId];
-    const entity2 = world2.entities[entityId];
-    return eqEntity(entity1, entity2);
-  }
+  return and(
+    entityIds.map((entityId) => {
+      const entity1 = world1.entities[entityId];
+      const entity2 = world2.entities[entityId];
+      return eqEntity(entity1, entity2);
+    }),
+  );
 }
 
 export function eqEntity(entity1: Entity, entity2: Entity) {
   return or([
-    entity1.alive === false && entity2.alive === false,
+    // !entity1.alive && !entity2.alive,
+    false,
     and([
+      entity1.alive === entity2.alive,
       entity1.id === entity2.id,
       eqDir(entity1.forward, entity2.forward),
       eqPos(entity1.pos, entity2.pos),

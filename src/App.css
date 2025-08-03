@@ -5,6 +5,22 @@
     display: flex;
     flex-direction: column;
     gap: 20px;
+
+    & > .controls {
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+
+        & > .label {
+            font-weight: bold;
+        }
+    }
+}
+
+.Level {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 .section {
@@ -25,6 +41,7 @@
 
 .Win,
 .Lose {
+    color: white;
     font-size: 2em;
 }
 
@@ -36,23 +53,14 @@
     background-color: red;
 }
 
-.World-container {
-    border: 1px solid black;
-    overflow: auto;
-    height: 400px;
-    width: 100%;
-    padding: 50px;
-    background-color: lightgray;
-}
-
-.World {
-    position: relative;
-    overflow: visible;
+.ProtoEntity {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    align-items: center;
 }
 
 .Entity {
-    position: absolute;
-
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -64,6 +72,24 @@
     font-weight: bold;
     transition-property: left top transform;
     transition-timing-function: linear;
+}
+
+.World-container {
+    border: 1px solid black;
+    overflow: auto;
+    height: 1000px;
+    width: 100%;
+    padding: 50px;
+    background-color: lightgray;
+}
+
+.World {
+    position: relative;
+    overflow: visible;
+
+    .Entity {
+        position: absolute;
+    }
 }
 
 .Entity.CircleRunner {

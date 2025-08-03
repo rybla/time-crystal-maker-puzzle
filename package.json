@@ -1,5 +1,5 @@
 {
-  "name": "bun-react-template",
+  "name": "time-crystal-maker",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -12,7 +12,8 @@
   },
   "dependencies": {
     "react": "^19",
-    "react-dom": "^19"
+    "react-dom": "^19",
+    "react-markdown": "^10.1.0"
   },
   "devDependencies": {
     "@types/react": "^19",

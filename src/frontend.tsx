@@ -11,11 +11,7 @@ import "./index.css";
 import App from "./App";
 
 const elem = document.getElementById("root")!;
-const app = (
-  <StrictMode>
-    <App />
-  </StrictMode>
-);
+const app = <App />;
 
 if (import.meta.hot) {
   // With hot module reloading, `import.meta.hot.data` is persisted.

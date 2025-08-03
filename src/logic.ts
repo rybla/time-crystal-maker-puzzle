@@ -70,7 +70,14 @@ export class WorldUpdateManager {
         }
       },
       moveForward: async ({}) => {
-        entity.pos = shiftPos(entity.pos, entity.forward);
+        // moves forward if the front space is empty
+        const front = shiftPos(entity.pos, entity.forward);
+        const entities = this.getEntitiesAtPos(front).filter(
+          (e) => e.id !== entity.id,
+        );
+        if (entities.length === 0) {
+          entity.pos = front;
+        }
         await this.submit();
       },
       turnLeft: async ({}) => {
@@ -82,26 +89,18 @@ export class WorldUpdateManager {
         await this.submit();
       },
       attack: async ({ damage }) => {
-        const entityIds = this.getEntitiesAtPos(entity.pos).filter(
-          (e) => e !== entity.id,
+        // deals damage to entities in front
+        const front = shiftPos(entity.pos, entity.forward);
+        const entities = this.getEntitiesAtPos(front).filter(
+          (e) => e.id !== entity.id,
         );
-        for (const entityId of entityIds) {
-          const entity = this.getEntity(entityId);
+        for (const entity of entities) {
           entity.health -= damage;
         }
         await this.submit();
       },
     });
   }
-
-  // evalDirExpr(entity: Entity, ve: DirExpr): Dir {
-  //   return match<DirExprRow, Dir>(ve, {
-  //     inject: ({ v }) => v,
-  //     rotateLeft: ({ ve }) => rotateLeftDir(this.evalDirExpr(entity, ve)),
-  //     rotateRight: ({ ve }) => rotateRightDir(this.evalDirExpr(entity, ve)),
-  //     forward: ({}) => entity.forward,
-  //   });
-  // }
 
   getEntity(entityId: EntityId): Entity {
     const entity = this.world.entities.get(entityId);
@@ -116,11 +115,11 @@ export class WorldUpdateManager {
     return protoEntity;
   }
 
-  getEntitiesAtPos(pos: Pos): EntityId[] {
+  getEntitiesAtPos(pos: Pos): Entity[] {
     return Array.from(
       this.world.entities
         .values()
-        .flatMap((entity) => (eqPos(entity.pos, pos) ? [entity.id] : [])),
+        .flatMap((entity) => (eqPos(entity.pos, pos) ? [entity] : [])),
     );
   }
 }

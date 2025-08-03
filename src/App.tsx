@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import "./App.css";
+import { initializeWorld, WorldUpdateManager } from "./logic";
 import {
   Entity,
   EntityId,
@@ -7,18 +8,15 @@ import {
   ProtoEntity,
   ProtoEntityId,
   ProtoWorld,
-  World,
 } from "./ontology";
-import { initializeWorld, WorldUpdateManager } from "./logic";
-import { do_, match, sleep, Variant } from "./utility";
+import { sleep } from "./utility";
 
 const distance_unit = 50; // px
 const action_duration = 500; // ms
 const max_distance = 10;
 
-const Box: ProtoEntity = {
-  id: "Box" as ProtoEntityId,
-  name: "Box",
+const RunnerFigure8: ProtoEntity = {
+  id: "RunnerFigure8" as ProtoEntityId,
   triggers: [
     {
       condition: () => true,
@@ -45,153 +43,121 @@ const Box: ProtoEntity = {
   ],
 };
 
+const Runner: ProtoEntity = {
+  id: "Runner" as ProtoEntityId,
+  triggers: [
+    {
+      condition: () => true,
+      action: {
+        type: "sequence",
+        actions: [
+          { type: "moveForward" },
+          { type: "moveForward" },
+          { type: "turnLeft" },
+        ],
+      },
+    },
+  ],
+};
+
 export default function App() {
-  const box1_x_min = 2;
-  const box1_x_max = 4;
-  const [box1_x, set_box1_x] = useState(box1_x_min);
+  const [worldIndex, set_worldIndex] = useState(0);
+
+  const runner1_x_min = 0;
+  const runner1_x_max = 8;
+  const [runner1_x, set_runner1_x] = useState(runner1_x_min);
 
   return (
     <div className="App">
-      <div>
-        <input
-          type="range"
-          min={box1_x_min}
-          max={box1_x_max}
-          defaultValue={box1_x}
-          onChange={(e) => set_box1_x(parseInt(e.currentTarget.value))}
+      <div className="section controls">
+        <div className="title">Controls</div>
+        <div>
+          <input
+            type="range"
+            min={runner1_x_min}
+            max={runner1_x_max}
+            defaultValue={runner1_x}
+            onChange={(e) => {
+              set_runner1_x(parseInt(e.currentTarget.value));
+              set_worldIndex((i) => i + 1);
+            }}
+          />
+        </div>
+        <div>
+          <button
+            onClick={() => {
+              set_worldIndex((i) => i + 1);
+            }}
+          >
+            reset
+          </button>
+        </div>
+      </div>
+      <hr />
+      <div className="section view">
+        <div className="title">View</div>
+        <WorldView
+          key={worldIndex}
+          protoWorld={{
+            protoEntities: new Map(
+              [Runner].map((protoEntity) => [protoEntity.id, protoEntity]),
+            ),
+            initialEntities: [
+              {
+                protoEntityId: Runner.id,
+                id: "Runner1" as EntityId,
+                forward: 2,
+                health: 10,
+                pos: { x: runner1_x, y: 2 },
+              } satisfies Entity,
+              {
+                protoEntityId: Runner.id,
+                id: "Runner2" as EntityId,
+                forward: 2,
+                health: 10,
+                pos: { x: runner1_x + 2, y: 2 },
+              } satisfies Entity,
+            ],
+          }}
         />
       </div>
-      <WorldView
-        protoWorld={{
-          protoEntities: new Map(
-            [Box].map((protoEntity) => [protoEntity.id, protoEntity]),
-          ),
-          initialEntities: [
-            {
-              protoEntityId: Box.id,
-              id: "box1" as EntityId,
-              name: "Box #1",
-              forward: 2,
-              health: 10,
-              pos: { x: box1_x, y: 2 },
-            } satisfies Entity,
-          ],
-        }}
-      />
     </div>
   );
 }
 
-type QueueItem = Variant<QueueItemRow>;
-type QueueItemRow = {
-  reset: {};
-  update: {};
-  updateLoop: {};
-  stop: {};
-};
-
 function WorldView(props: { protoWorld: ProtoWorld }) {
-  // const isUpdating = useRef(false);
   const [world, set_world] = useState(initializeWorld(props.protoWorld));
-  const [queueUpdateCounter, set_queueUpdateCounter] = useState(0);
 
-  async function update() {
-    console.log("[update]");
-    const manager = new WorldUpdateManager(
-      props.protoWorld,
-      world,
-      async (world) => {
-        set_world({ ...world });
-        await sleep(action_duration);
-      },
-    );
-    await manager.run();
+  async function start() {
+    while (true) {
+      const manager = new WorldUpdateManager(
+        props.protoWorld,
+        world,
+        async (world) => {
+          set_world({ ...world });
+          await sleep(action_duration);
+        },
+      );
+      await manager.run();
+    }
   }
-
-  const queue = useRef<QueueItem[]>([]);
-
-  async function updateQueue() {
-    const x = queue.current.pop();
-    if (x === undefined) return;
-    await match<QueueItemRow, Promise<void>>(x, {
-      reset: async () => {
-        console.log("[reset]");
-        queue.current.splice(0, queue.current.length);
-        set_world(initializeWorld(props.protoWorld));
-        await sleep(action_duration);
-      },
-      update: async () => {
-        console.log("[updateOnce]");
-        await update();
-      },
-      updateLoop: async () => {
-        console.log("[updateLoop] BEGIN");
-        queue.current.push({ type: "updateLoop" });
-        await update();
-        console.log("[updateLoop] END");
-      },
-      stop: async () => {
-        queue.current.splice(0, queue.current.length);
-      },
-    });
-  }
-
-  useEffect(() => {
-    void do_(async () => {
-      await updateQueue();
-      set_queueUpdateCounter((x) => x + 1);
-    });
-  }, [queueUpdateCounter]);
-
-  useEffect(() => {
-    queue.current.push({ type: "reset" });
-    if (queue.current.length === 0) set_queueUpdateCounter((x) => x + 1);
-  }, [props]);
 
   return (
     <div className="WorldView">
-      <div>WorldView</div>
-      <div>
+      <div className="controls">
         <button
           onClick={() => {
-            queue.current.splice(0, 0, { type: "reset" });
+            void start();
           }}
         >
-          reset
-        </button>
-        <button
-          onClick={() => {
-            queue.current.push({ type: "update" });
-          }}
-        >
-          step
-        </button>
-        <button
-          onClick={() => {
-            queue.current.push({ type: "updateLoop" });
-          }}
-        >
-          loop
-        </button>
-        <button
-          onClick={() => {
-            queue.current.push({ type: "stop" });
-          }}
-        >
-          stop
+          start
         </button>
       </div>
-      <div
-        className="World"
-        style={{
-          width: `${(max_distance + 1) * distance_unit}px`,
-          height: `${(max_distance + 1) * distance_unit}px`,
-        }}
-      >
+      <div className="World">
         {Array.from(
           world.entities.values().map((entity, i) => (
             <div
-              className="Entity"
+              className={`Entity ${entity.protoEntityId} ${entity.id}`}
               key={`entity-${i}`}
               style={{
                 width: `${1 * distance_unit}px`,
@@ -204,7 +170,7 @@ function WorldView(props: { protoWorld: ProtoWorld }) {
                 transitionTimingFunction: "linear",
               }}
             >
-              <div>{entity.name}</div>
+              <div>{entity.id}</div>
               <div>
                 ({entity.pos.x}, {entity.pos.y})
               </div>

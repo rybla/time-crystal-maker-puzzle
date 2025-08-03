@@ -13,7 +13,6 @@ export type ProtoEntityId = string;
 
 export type ProtoEntity = {
   id: ProtoEntityId;
-  name: string;
   triggers: Trigger[];
 };
 
@@ -35,7 +34,6 @@ export type EntityId = string;
 export type Entity = {
   protoEntityId: ProtoEntityId;
   id: EntityId;
-  name: string;
   pos: Pos;
   health: number;
   forward: Dir;
@@ -87,14 +85,6 @@ export function rotateRightDir(v: Dir): Dir {
 export function eqDirExpr(v1: Dir, v2: Dir): boolean {
   return v1 % 4 === v2 % 4;
 }
-
-// export type DirExpr = Variant<DirExprRow>;
-// export type DirExprRow = {
-//   inject: { v: Dir };
-//   rotateLeft: { ve: DirExpr };
-//   rotateRight: { ve: DirExpr };
-//   forward: {};
-// };
 
 // -----------------------------------------------------------------------------
 // Pos

@@ -60,7 +60,7 @@ export type ActionRow = {
   turnLeft: {};
   turnRight: {};
   // attack
-  attack: { damage: number };
+  attack: {};
   // item
   generateItem: { item: Item };
   consumeItem: { item: Item };
@@ -118,11 +118,14 @@ export function eqWorld(world1: World, world2: World) {
 }
 
 export function eqEntity(entity1: Entity, entity2: Entity) {
-  return and([
-    entity1.id === entity2.id,
-    eqDir(entity1.forward, entity2.forward),
-    eqPos(entity1.pos, entity2.pos),
-    entity1.item === entity2.item,
+  return or([
+    entity1.alive === false && entity2.alive === false,
+    and([
+      entity1.id === entity2.id,
+      eqDir(entity1.forward, entity2.forward),
+      eqPos(entity1.pos, entity2.pos),
+      entity1.item === entity2.item,
+    ]),
   ]);
 }
 

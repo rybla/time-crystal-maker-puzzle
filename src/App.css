@@ -59,12 +59,22 @@
     justify-content: center;
 
     overflow: auto;
+
+    color: white;
+    font-weight: bold;
+    transition-property: left top transform;
+    transition-timing-function: linear;
 }
 
 .Entity.CircleRunner {
     background-color: green;
+    border-radius: 50%;
 }
 
 .Entity.LineRunner {
-    background-color: red;
+    background-color: Green;
+}
+
+.Entity.LineStomper {
+    background-color: Red;
 }

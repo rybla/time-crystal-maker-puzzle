@@ -13,70 +13,94 @@ import {
 } from "./ontology";
 import { deepcopy, sleep } from "./utility";
 
-const RunnerFigure8: ProtoEntity = {
-  id: "RunnerFigure8" as ProtoEntityId,
-  triggers: [
-    {
-      condition: () => true,
-      action: {
-        type: "sequence",
-        actions: [
-          { type: "moveForward" },
-          { type: "turnLeft" },
-          { type: "moveForward" },
-          { type: "moveForward" },
-          { type: "turnRight" },
-          { type: "moveForward" },
-          { type: "turnRight" },
-          { type: "moveForward" },
-          { type: "turnRight" },
-          { type: "moveForward" },
-          { type: "moveForward" },
-          { type: "turnLeft" },
-          { type: "moveForward" },
-          { type: "turnLeft" },
-        ],
-      },
-    },
-  ],
-};
-
-const CircleRunner: ProtoEntity = {
-  id: "CircleRunner" as ProtoEntityId,
-  triggers: [
-    {
-      condition: () => true,
-      action: {
-        type: "sequence",
-        actions: [
-          { type: "moveForward" },
-          { type: "moveForward" },
-          { type: "turnLeft" },
-        ],
-      },
-    },
-  ],
-};
-
-const LineRunner: ProtoEntity = {
-  id: "LineRunner" as ProtoEntityId,
-  triggers: [
-    {
-      condition: () => true,
-      action: {
-        type: "sequence",
-        actions: [{ type: "moveForward" }],
-      },
-    },
-  ],
-};
-
 export default function App() {
   const [worldIndex, set_worldIndex] = useState(0);
 
   const runner1_x_min = 0;
   const runner1_x_max = 8;
   const [runner1_x, set_runner1_x] = useState(runner1_x_min);
+
+  const runner2_x_min = 0;
+  const runner2_x_max = 8;
+  const [runner2_x, set_runner2_x] = useState(runner2_x_min);
+
+  const protoEntities: ProtoWorld["protoEntities"] = (
+    [
+      {
+        id: "RunnerFigure8",
+        triggers: [
+          {
+            condition: () => true,
+            action: {
+              type: "sequence",
+              actions: [
+                { type: "moveForward" },
+                { type: "turnLeft" },
+                { type: "moveForward" },
+                { type: "moveForward" },
+                { type: "turnRight" },
+                { type: "moveForward" },
+                { type: "turnRight" },
+                { type: "moveForward" },
+                { type: "turnRight" },
+                { type: "moveForward" },
+                { type: "moveForward" },
+                { type: "turnLeft" },
+                { type: "moveForward" },
+                { type: "turnLeft" },
+              ],
+            },
+          },
+        ],
+      },
+      {
+        id: "CircleRunner",
+        triggers: [
+          {
+            condition: () => true,
+            action: {
+              type: "sequence",
+              actions: [
+                { type: "moveForward" },
+                { type: "moveForward" },
+                { type: "turnLeft" },
+              ],
+            },
+          },
+        ],
+      },
+      {
+        id: "LineRunner",
+        triggers: [
+          {
+            condition: () => true,
+            action: {
+              type: "sequence",
+              actions: [{ type: "moveForward" }],
+            },
+          },
+        ],
+      },
+      {
+        id: "LineStomper",
+        triggers: [
+          {
+            condition: () => true,
+            action: {
+              type: "sequence",
+              actions: [{ type: "moveForward" }, { type: "attack" }],
+            },
+          },
+        ],
+      },
+    ] satisfies ProtoEntity[]
+  ).reduce(
+    (acc, protoEntity) => {
+      acc[protoEntity.id] = protoEntity;
+      return acc;
+    },
+    {} as ProtoWorld["protoEntities"],
+  );
 
   return (
     <div className="App">
@@ -96,6 +120,19 @@ export default function App() {
           />
         </div>
         <div>
+          runner2_x:{" "}
+          <input
+            type="range"
+            min={runner2_x_min}
+            max={runner2_x_max}
+            defaultValue={runner2_x}
+            onChange={(e) => {
+              set_runner2_x(parseInt(e.currentTarget.value));
+              set_worldIndex((i) => i + 1);
+            }}
+          />
+        </div>
+        <div>
           <button
             onClick={() => {
               set_worldIndex((i) => i + 1);
@@ -108,28 +145,33 @@ export default function App() {
       <WorldView
         key={worldIndex}
         protoWorld={{
-          protoEntities: {
-            [CircleRunner.id]: CircleRunner,
-            [LineRunner.id]: LineRunner,
-          },
+          protoEntities,
           initialEntities: [
             {
-              id: "E1" as EntityId,
-              protoEntityId: CircleRunner.id,
-              pos: { x: runner1_x, y: 0 },
+              id: "E1",
+              protoEntityId: protoEntities.CircleRunner.id,
+              pos: { x: runner1_x, y: 2 },
               forward: 2,
               item: undefined,
               alive: true,
-            } satisfies Entity,
+            },
             // {
-            //   id: "E2" as EntityId,
-            //   protoEntityId: LineRunner.id,
+            //   id: "E2",
+            //   protoEntityId: protoEntities.LineRunner.id,
             //   pos: { x: runner1_x + 2, y: 0 },
             //   forward: 2,
             //   health: 10,
             //   item: undefined,
             // } satisfies Entity,
-          ],
+            {
+              id: "3",
+              protoEntityId: protoEntities.LineStomper.id,
+              alive: true,
+              pos: { x: runner2_x, y: 1 },
+              forward: 2,
+              item: undefined,
+            },
+          ] satisfies Entity[],
         }}
         checkStep={10}
       />
@@ -236,30 +278,28 @@ function WorldView(props: {
       <div className="World-container">
         <div className="World">
           {Array.from(
-            Object.values(world.entities).map((entity, i) =>
+            Object.values(world.entities).map((entity) =>
               entity.alive ? (
                 <div
                   className={`Entity ${entity.protoEntityId} ${entity.id}`}
-                  key={`entity-${i}`}
+                  key={`entity-${entity.id}`}
                   style={{
                     width: `${1 * config.current.distance_unit}px`,
                     height: `${1 * config.current.distance_unit}px`,
                     left: entity.pos.x * config.current.distance_unit,
                     top: entity.pos.y * config.current.distance_unit,
                     transform: `rotate(${fromDirToDegrees(entity.forward)}deg)`,
-                    transitionProperty: "left top transform",
                     transitionDuration: `${config.current.action_duration}ms`,
-                    transitionTimingFunction: "linear",
                   }}
                 >
                   <div>{entity.id}</div>
-                  <div>
+                  {/*<div>
                     ({entity.pos.x}, {entity.pos.y})
-                  </div>
-                  <div>dir: {entity.forward}</div>
+                  </div>*/}
+                  {/*<div>dir: {entity.forward}</div>*/}
                 </div>
               ) : (
-                <></>
+                []
               ),
             ),
           )}

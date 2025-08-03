@@ -13,7 +13,7 @@ import {
   shiftPos,
   World,
 } from "./ontology";
-import { deepcopy, match } from "./utility";
+import { and, deepcopy, match } from "./utility";
 
 // -----------------------------------------------------------------------------
 // initializeWorld
@@ -92,8 +92,8 @@ export class WorldUpdateManager {
         self.forward = rotateRightDir(self.forward);
         await this.submit();
       },
-      attack: async ({ damage }) => {
-        // deals damage to entity in front
+      attack: async ({}) => {
+        // kills entity in front
         const front = shiftPos(self.pos, self.forward);
         const other = this.getEntityAtPos(front);
         if (other !== undefined) {
@@ -136,7 +136,7 @@ export class WorldUpdateManager {
 
   getEntityAtPos(pos: Pos): Entity | undefined {
     for (const entity of Object.values(this.world.entities)) {
-      if (entity.pos !== undefined && eqPos(entity.pos, pos)) {
+      if (and([entity.alive, eqPos(entity.pos, pos)])) {
         return entity;
       }
     }

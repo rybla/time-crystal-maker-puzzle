@@ -119,6 +119,7 @@ export default function App() {
               pos: { x: runner1_x, y: 0 },
               forward: 2,
               item: undefined,
+              alive: true,
             } satisfies Entity,
             // {
             //   id: "E2" as EntityId,
@@ -236,9 +237,7 @@ function WorldView(props: {
         <div className="World">
           {Array.from(
             Object.values(world.entities).map((entity, i) =>
-              entity.pos === undefined ? (
-                <></>
-              ) : (
+              entity.alive ? (
                 <div
                   className={`Entity ${entity.protoEntityId} ${entity.id}`}
                   key={`entity-${i}`}
@@ -259,6 +258,8 @@ function WorldView(props: {
                   </div>
                   <div>dir: {entity.forward}</div>
                 </div>
+              ) : (
+                <></>
               ),
             ),
           )}

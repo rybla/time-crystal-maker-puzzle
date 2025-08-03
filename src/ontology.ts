@@ -34,7 +34,8 @@ export type EntityId = string;
 export type Entity = {
   protoEntityId: ProtoEntityId;
   id: EntityId;
-  pos: Pos | undefined;
+  alive: boolean;
+  pos: Pos;
   forward: Dir;
   item: Item | undefined;
 };
@@ -120,12 +121,7 @@ export function eqEntity(entity1: Entity, entity2: Entity) {
   return and([
     entity1.id === entity2.id,
     eqDir(entity1.forward, entity2.forward),
-    or([
-      entity1.pos === undefined && entity2.pos === undefined,
-      entity1.pos !== undefined &&
-        entity2.pos !== undefined &&
-        eqPos(entity1.pos, entity2.pos),
-    ]),
+    eqPos(entity1.pos, entity2.pos),
     entity1.item === entity2.item,
   ]);
 }

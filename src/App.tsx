@@ -118,7 +118,6 @@ export default function App() {
               protoEntityId: CircleRunner.id,
               pos: { x: runner1_x, y: 0 },
               forward: 2,
-              alive: true,
               item: undefined,
             } satisfies Entity,
             // {
@@ -236,28 +235,32 @@ function WorldView(props: {
       <div className="World-container">
         <div className="World">
           {Array.from(
-            Object.values(world.entities).map((entity, i) => (
-              <div
-                className={`Entity ${entity.protoEntityId} ${entity.id}`}
-                key={`entity-${i}`}
-                style={{
-                  width: `${1 * config.current.distance_unit}px`,
-                  height: `${1 * config.current.distance_unit}px`,
-                  left: entity.pos.x * config.current.distance_unit,
-                  top: entity.pos.y * config.current.distance_unit,
-                  transform: `rotate(${fromDirToDegrees(entity.forward)}deg)`,
-                  transitionProperty: "left top transform",
-                  transitionDuration: `${config.current.action_duration}ms`,
-                  transitionTimingFunction: "linear",
-                }}
-              >
-                <div>{entity.id}</div>
-                <div>
-                  ({entity.pos.x}, {entity.pos.y})
+            Object.values(world.entities).map((entity, i) =>
+              entity.pos === undefined ? (
+                <></>
+              ) : (
+                <div
+                  className={`Entity ${entity.protoEntityId} ${entity.id}`}
+                  key={`entity-${i}`}
+                  style={{
+                    width: `${1 * config.current.distance_unit}px`,
+                    height: `${1 * config.current.distance_unit}px`,
+                    left: entity.pos.x * config.current.distance_unit,
+                    top: entity.pos.y * config.current.distance_unit,
+                    transform: `rotate(${fromDirToDegrees(entity.forward)}deg)`,
+                    transitionProperty: "left top transform",
+                    transitionDuration: `${config.current.action_duration}ms`,
+                    transitionTimingFunction: "linear",
+                  }}
+                >
+                  <div>{entity.id}</div>
+                  <div>
+                    ({entity.pos.x}, {entity.pos.y})
+                  </div>
+                  <div>dir: {entity.forward}</div>
                 </div>
-                <div>dir: {entity.forward}</div>
-              </div>
-            )),
+              ),
+            ),
           )}
         </div>
       </div>

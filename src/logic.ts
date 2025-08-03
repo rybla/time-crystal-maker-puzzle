@@ -67,6 +67,9 @@ export class WorldUpdateManager {
    * Do an {@link Action}.
    */
   async runAction(self: Entity, action: Action): Promise<void> {
+    if (self.pos === undefined) return;
+    const pos = self.pos;
+
     return match<ActionRow, Promise<void>>(action, {
       sequence: async ({ actions }) => {
         for (const action of actions) {
@@ -75,7 +78,7 @@ export class WorldUpdateManager {
       },
       moveForward: async ({}) => {
         // moves forward if the front space is empty
-        const front = shiftPos(self.pos, self.forward);
+        const front = shiftPos(pos, self.forward);
         const other = this.getEntityAtPos(front);
         if (other === undefined) {
           self.pos = front;
@@ -92,16 +95,16 @@ export class WorldUpdateManager {
       },
       attack: async ({ damage }) => {
         // deals damage to entity in front
-        const front = shiftPos(self.pos, self.forward);
+        const front = shiftPos(pos, self.forward);
         const other = this.getEntityAtPos(front);
         if (other !== undefined) {
-          other.alive = false;
+          other.pos = undefined;
         }
         await this.submit();
       },
       giveItem: async ({ item }) => {
         // gives item to entity in front
-        const front = shiftPos(self.pos, self.forward);
+        const front = shiftPos(pos, self.forward);
         const other = this.getEntityAtPos(front);
         if (other !== undefined) {
           if (self.item === item) {
@@ -134,7 +137,7 @@ export class WorldUpdateManager {
 
   getEntityAtPos(pos: Pos): Entity | undefined {
     for (const entity of Object.values(this.world.entities)) {
-      if (eqPos(entity.pos, pos)) {
+      if (entity.pos !== undefined && eqPos(entity.pos, pos)) {
         return entity;
       }
     }

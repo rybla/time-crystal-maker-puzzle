@@ -1,4 +1,4 @@
-import { and, Variant } from "./utility";
+import { and, or, Variant } from "./utility";
 
 // -----------------------------------------------------------------------------
 // ProtoWorld
@@ -34,8 +34,7 @@ export type EntityId = string;
 export type Entity = {
   protoEntityId: ProtoEntityId;
   id: EntityId;
-  pos: Pos;
-  alive: boolean;
+  pos: Pos | undefined;
   forward: Dir;
   item: Item | undefined;
 };
@@ -120,9 +119,13 @@ export function eqWorld(world1: World, world2: World) {
 export function eqEntity(entity1: Entity, entity2: Entity) {
   return and([
     entity1.id === entity2.id,
-    entity1.alive === entity2.alive,
     eqDir(entity1.forward, entity2.forward),
-    eqPos(entity1.pos, entity2.pos),
+    or([
+      entity1.pos === undefined && entity2.pos === undefined,
+      entity1.pos !== undefined &&
+        entity2.pos !== undefined &&
+        eqPos(entity1.pos, entity2.pos),
+    ]),
     entity1.item === entity2.item,
   ]);
 }

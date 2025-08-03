@@ -5,79 +5,47 @@ import { useState } from "react";
 export default function Level() {
   const [worldIndex, set_worldIndex] = useState(0);
 
-  const runner1_x_min = 0;
-  const runner1_x_max = 8;
-  const [runner1_x, set_runner1_x] = useState(runner1_x_min);
+  const e1_x_min = 0;
+  const e1_x_max = 1;
+  const [e1_x, set_e1_x] = useState(e1_x_min);
 
-  const runner2_x_min = 0;
-  const runner2_x_max = 8;
-  const [runner2_x, set_runner2_x] = useState(runner2_x_min);
+  const e2_x_min = 0;
+  const e2_x_max = 1;
+  const [e2_x, set_e2_x] = useState(e2_x_min);
 
   const protoEntities: ProtoWorld["protoEntities"] = (
     [
       {
-        id: "RunnerFigure8",
-        triggers: [
-          {
-            condition: () => true,
-            action: {
-              type: "sequence",
-              actions: [
-                { type: "moveForward" },
-                { type: "turnLeft" },
-                { type: "moveForward" },
-                { type: "moveForward" },
-                { type: "turnRight" },
-                { type: "moveForward" },
-                { type: "turnRight" },
-                { type: "moveForward" },
-                { type: "turnRight" },
-                { type: "moveForward" },
-                { type: "moveForward" },
-                { type: "turnLeft" },
-                { type: "moveForward" },
-                { type: "turnLeft" },
-              ],
-            },
-          },
-        ],
-      },
-      {
-        id: "CircleRunner",
-        triggers: [
-          {
-            condition: () => true,
-            action: {
-              type: "sequence",
-              actions: [
-                { type: "moveForward" },
-                { type: "moveForward" },
-                { type: "turnLeft" },
-              ],
-            },
-          },
-        ],
-      },
-      {
-        id: "LineRunner",
-        triggers: [
-          {
-            condition: () => true,
-            action: {
-              type: "sequence",
-              actions: [{ type: "moveForward" }],
-            },
-          },
-        ],
-      },
-      {
         id: "LineStomper",
+        description: "Moves forward and attacks one space at a time.",
         triggers: [
           {
             condition: () => true,
             action: {
               type: "sequence",
               actions: [{ type: "moveForward" }, { type: "attack" }],
+            },
+          },
+        ],
+      },
+      {
+        id: "Rock",
+        description: "Is invincible and doesn't do anything.",
+        triggers: [],
+      },
+      {
+        id: "CircleRunner",
+        description: "Moves in circles.",
+        triggers: [
+          {
+            condition: () => true,
+            action: {
+              type: "sequence",
+              actions: [
+                { type: "moveForward" },
+                { type: "moveForward" },
+                { type: "turnLeft" },
+              ],
             },
           },
         ],
@@ -96,27 +64,27 @@ export default function Level() {
       <div className="section parameters">
         <div className="title">Controls</div>
         <div>
-          runner1_x:{" "}
+          e1_x:{" "}
           <input
             type="range"
-            min={runner1_x_min}
-            max={runner1_x_max}
-            defaultValue={runner1_x}
+            min={e1_x_min}
+            max={e1_x_max}
+            defaultValue={e1_x}
             onChange={(e) => {
-              set_runner1_x(parseInt(e.currentTarget.value));
+              set_e1_x(parseInt(e.currentTarget.value));
               set_worldIndex((i) => i + 1);
             }}
           />
         </div>
         <div>
-          runner2_x:{" "}
+          e2_x:{" "}
           <input
             type="range"
-            min={runner2_x_min}
-            max={runner2_x_max}
-            defaultValue={runner2_x}
+            min={e2_x_min}
+            max={e2_x_max}
+            defaultValue={e2_x}
             onChange={(e) => {
-              set_runner2_x(parseInt(e.currentTarget.value));
+              set_e2_x(parseInt(e.currentTarget.value));
               set_worldIndex((i) => i + 1);
             }}
           />
@@ -137,32 +105,33 @@ export default function Level() {
           protoEntities,
           initialEntities: [
             {
-              id: "E1",
-              protoEntityId: protoEntities.CircleRunner.id,
-              pos: { x: runner1_x, y: 2 },
-              forward: 2,
-              item: undefined,
-              alive: true,
-            },
-            // {
-            //   id: "E2",
-            //   protoEntityId: protoEntities.LineRunner.id,
-            //   pos: { x: runner1_x + 2, y: 0 },
-            //   forward: 2,
-            //   health: 10,
-            //   item: undefined,
-            // } satisfies Entity,
-            {
-              id: "3",
+              id: "E2",
               protoEntityId: protoEntities.LineStomper.id,
-              alive: true,
-              pos: { x: runner2_x, y: 1 },
+              pos: { x: 1 + e1_x, y: 1 },
+              forward: 1,
+            },
+            {
+              id: "E1",
+              protoEntityId: protoEntities.LineStomper.id,
+              pos: { x: 4 + e2_x, y: 1 },
+              forward: 3,
+            },
+            {
+              id: "E3",
+              protoEntityId: protoEntities.Rock.id,
+              pos: { x: 6, y: 1 },
+              forward: 3,
+              invincible: true,
+            },
+            {
+              id: "E4",
+              protoEntityId: protoEntities.CircleRunner.id,
+              pos: { x: 1, y: 2 },
               forward: 2,
-              item: undefined,
             },
           ] satisfies Entity[],
         }}
-        checkStep={10}
+        checkStep={7}
       />
     </div>
   );

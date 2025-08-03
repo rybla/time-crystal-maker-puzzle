@@ -104,3 +104,7 @@
 .Entity.LineStomper {
     background-color: Red;
 }
+
+.Entity.Rock {
+    background-color: darkslategray;
+}

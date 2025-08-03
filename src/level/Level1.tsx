@@ -5,13 +5,13 @@ import { useState } from "react";
 export default function Level() {
   const [worldIndex, set_worldIndex] = useState(0);
 
-  const runner1_x_min = 0;
-  const runner1_x_max = 8;
-  const [runner1_x, set_runner1_x] = useState(runner1_x_min);
+  const e1_x_min = 0;
+  const e1_x_max = 1;
+  const [e1_x, set_e1_x] = useState(e1_x_min);
 
-  const runner2_x_min = 0;
-  const runner2_x_max = 8;
-  const [runner2_x, set_runner2_x] = useState(runner2_x_min);
+  const e2_x_min = 0;
+  const e2_x_max = 1;
+  const [e2_x, set_e2_x] = useState(e2_x_min);
 
   const protoEntities: ProtoWorld["protoEntities"] = (
     [
@@ -20,9 +20,6 @@ export default function Level() {
         description: "Moves forward and attacks one space at a time.",
         triggers: [
           {
-            // condition: (world) =>
-            //   Array.from(Object.values(world.entities).filter((e) => e.alive))
-            //     .length > 1,
             condition: () => true,
             action: {
               type: "sequence",
@@ -30,6 +27,11 @@ export default function Level() {
             },
           },
         ],
+      },
+      {
+        id: "Rock",
+        description: "Is invincible and doesn't do anything.",
+        triggers: [],
       },
     ] satisfies ProtoEntity[]
   ).reduce(
@@ -45,27 +47,27 @@ export default function Level() {
       <div className="section parameters">
         <div className="title">Controls</div>
         <div>
-          runner1_x:{" "}
+          e1_x:{" "}
           <input
             type="range"
-            min={runner1_x_min}
-            max={runner1_x_max}
-            defaultValue={runner1_x}
+            min={e1_x_min}
+            max={e1_x_max}
+            defaultValue={e1_x}
             onChange={(e) => {
-              set_runner1_x(parseInt(e.currentTarget.value));
+              set_e1_x(parseInt(e.currentTarget.value));
               set_worldIndex((i) => i + 1);
             }}
           />
         </div>
         <div>
-          runner2_x:{" "}
+          e2_x:{" "}
           <input
             type="range"
-            min={runner2_x_min}
-            max={runner2_x_max}
-            defaultValue={runner2_x}
+            min={e2_x_min}
+            max={e2_x_max}
+            defaultValue={e2_x}
             onChange={(e) => {
-              set_runner2_x(parseInt(e.currentTarget.value));
+              set_e2_x(parseInt(e.currentTarget.value));
               set_worldIndex((i) => i + 1);
             }}
           />
@@ -86,20 +88,27 @@ export default function Level() {
           protoEntities,
           initialEntities: [
             {
+              id: "E2",
+              protoEntityId: protoEntities.LineStomper.id,
+              pos: { x: 1 + e1_x, y: 1 },
+              forward: 1,
+            },
+            {
               id: "E1",
               protoEntityId: protoEntities.LineStomper.id,
-              pos: { x: 4, y: 1 },
+              pos: { x: 4 + e2_x, y: 1 },
               forward: 3,
             },
             {
-              id: "E2",
-              protoEntityId: protoEntities.LineStomper.id,
-              pos: { x: 1, y: 1 },
-              forward: 1,
+              id: "E3",
+              protoEntityId: protoEntities.Rock.id,
+              pos: { x: 6, y: 1 },
+              forward: 3,
+              invincible: true,
             },
           ] satisfies Entity[],
         }}
-        checkStep={10}
+        checkStep={7}
       />
     </div>
   );

@@ -74,7 +74,6 @@ export function WorldView(props: {
                   {renderEntity(config.current, {
                     protoEntityId: protoEntity.id,
                     id: "",
-                    alive: true,
                     forward: 0,
                     pos: { x: 0, y: 0 },
                   })}
@@ -135,7 +134,7 @@ export function WorldView(props: {
         <div className="World">
           {Array.from(
             Object.values(world.entities).map((entity) =>
-              entity.alive ? renderEntity(config.current, entity) : [],
+              !entity.dead ? renderEntity(config.current, entity) : [],
             ),
           )}
         </div>

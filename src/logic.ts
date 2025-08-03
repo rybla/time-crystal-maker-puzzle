@@ -96,7 +96,7 @@ export class WorldUpdateManager {
         // kills entity in front
         const front = shiftPos(self.pos, self.forward);
         const other = this.getEntityAtPos(front);
-        if (other !== undefined) {
+        if (other !== undefined && !other.invincible) {
           other.dead = true;
         }
         await this.submit();

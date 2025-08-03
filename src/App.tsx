@@ -2,8 +2,9 @@ import { useState } from "react";
 import "./App.css";
 import Level0 from "./level/Level0";
 import Level1 from "./level/Level1";
+import Level2 from "./level/Level2";
 
-const levels = [Level0, Level1];
+const levels = [Level0, Level1, Level2];
 
 export default function App() {
   const [levelIndex, set_levelIndex] = useState(0);

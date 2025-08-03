@@ -35,9 +35,10 @@ export type EntityId = string;
 export type Entity = {
   protoEntityId: ProtoEntityId;
   id: EntityId;
-  dead?: boolean;
   pos: Pos;
   forward: Dir;
+  dead?: boolean;
+  invincible?: boolean;
   item?: Item;
 };
 
